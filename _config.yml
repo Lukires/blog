@@ -17,15 +17,15 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-author: Made by initzx
-title: initzx's blog
+author: Made by Lukas Schilling
+title: Lukas Schilling's blog
 #email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Welcome to my blog, here I post my thoughts on things that I find interesting :)
+  My blog!
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://initzx.com" # the base hostname & protocol for your site, e.g. http://example.com
-github_username:  initzx
-google_analytics: G-MPPP48WSKE
+url: "https://blog.lukire.tech" # the base hostname & protocol for your site, e.g. http://example.com
+github_username:  Lukires
+google_analytics: G-CBQ0Q5XVKG
 
 header_pages:
   - README.md
