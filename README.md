@@ -4,4 +4,3 @@ title: Contact
 permalink: /readme/
 ---
 
-email ...
