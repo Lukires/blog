@@ -1,7 +1,7 @@
 ---
 layout: page
-title: readme
+title: Contact
 permalink: /readme/
 ---
 
-My name is Lukas
+email ...

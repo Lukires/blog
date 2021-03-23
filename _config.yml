@@ -24,8 +24,8 @@ description: >- # this means to ignore newlines until "baseurl:"
   My blog!
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://blog.lukire.tech" # the base hostname & protocol for your site, e.g. http://example.com
-github_username:  Lukires
-google_analytics: G-CBQ0Q5XVKG
+github_username: Lukires
+google_analytics: G-VNL75LNBLH
 
 header_pages:
   - README.md
