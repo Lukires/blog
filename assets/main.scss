@@ -1,0 +1,16 @@
+.page-link {
+  font-family: "Courier", serif;
+  font-size: 35px;
+}
+
+[class^="post-"] {
+    font-family: "Courier", serif;
+}
+
+.post-list a:hover {
+  background-color: #dbdbdb;
+  text-decoration: none;
+}
+
+@import "minima/skins/{{ site.minima.skin | default: 'solarized' }}";
+@import "minima";
