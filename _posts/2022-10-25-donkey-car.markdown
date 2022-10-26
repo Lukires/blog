@@ -21,7 +21,7 @@ author: Lukas Schilling and Till Wenke
 - [5. Bibliography](#5-bibliography)
 
 # **1. Motivation**
-We to train a model that can compete in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) at the University of Tartu.
+We want to train a model that can compete in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) at the University of Tartu.
 We thought it would be interesting to train a model in a simulation, using reinforcement learning, which is what this post will be focusing on.
 We will walk through our discoveries and progress, as well as our future plan, in a way that should make it possible for readers to follow along and
 reproduce our results.
@@ -40,18 +40,18 @@ The OpenAI Gym repository has a reinforcement learning implementation based on [
 ![DDQN training](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/donkey_ddqn_test.png)
 
 ### **2.2.2 Expanding upon the solution**
-The DDQN implementation uses a constant throttle, meaning we are only training the steering. Some of the challenges in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) require the ability to slow down and stop completely. Thus, it is important that our model is able to control its throttle. It also means that we need to create a course,
+The DDQN implementation uses a constant throttle, meaning we are only training the steering. Some of the challenges in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) require the ability to slow down and stop completely. Thus, it is important that our model is able to control its throttle. It also means that we need to create a course virtual,
 that can recreate the problems that require slowing down and stopping completely, which we could then use for training.
 
 #### **2.2.2.3 Changing the throttle dynamically**
-Adding adaptive throttling to our model turns out to be very easy, it is essentially just expanding the output space by 1 variable and sending this variable to our simulation as the car's throttle. However, while implementing it is easy, training the model becomes a lot harder. We also have to consider how throttle translates to speed, because the throttle's affect on speed can vary,
+Adding adaptive throttling to our model turns out to be very easy, it is essentially just expanding the output space by one variable and sending this variable to our simulation as the car's throttle. However, while implementing it is easy, training the model becomes a lot harder. We also have to consider how throttle translates to speed, because the throttle's affect on speed can vary,
 espcially for a real donkey car. We are still working on an optimal solution for this.
 
 #### **2.2.2.4 Custom course and custom obstacles**
 We are working on creating a course which will look like the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) competition course. Luckily, since the simulator is made in Unity, this becomes quite trivial, and we will push our finished course to [our fork of the simulator](https://github.com/Lukires/gym-donkeycar).
-A big part of the custom course will also be custom obstacles. The current simulation implementation calculates a cross track error, as well as when was the last collision, and sends it to our model, which then uses it for evaluating its decisions. This is enough for following a road and avoiding obstacles, such as walls or pedrestians.
+A big part of the custom course will also be custom obstacles. The current simulation implementation calculates a cross track error, as well as when was the last collision, and sends it to our model. The model then uses it to evaluate its decisions. This is enough for following a road and avoiding obstacles, such as walls or pedrestians.
 The ADL Minincar challenge, however, poses a few more challenges, such as stopping at a pedestrian crossing, waiting for a bit and then continuing. Luckily things like these are rather easy
-to detect in Unity, and we can simply implement a pedestrian crossing component, and a service that watches whether the car stops before pedestrian crossings, and then send it to our model along with the cross track error and last collision information.
+to detect in Unity, and we can simply implement a pedestrian crossing component, and a service that watches whether the car stops before pedestrian crossings, and then send it to our model along with the cross track error and last collision information. The way the model works is that it counts how much it has driven before these parameters reach a certain threshold, and uses that to evaluate its performance.  
 
 # **3. Energy consumption**
 Training AI models alone is an extremly [energy intensive task](https://numenta.com/blog/2022/05/24/ai-is-harming-our-planet).
