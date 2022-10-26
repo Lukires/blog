@@ -15,10 +15,10 @@ authors: Lukas Schilling, Till Wenke
     - [**2.2.2 Expanding upon the solution**](#222-expanding-upon-the-solution)
       - [**2.2.2.3 Changing the throttle dynamically**](#2223-changing-the-throttle-dynamically)
       - [**2.2.2.4 Custom course and custom obstacles**](#2224-custom-course-and-custom-obstacles)
-- [**4. Energy consumption**](#4-energy-consumption)
-  - [4.1 How to retrieve voltage on Donkey car?](#41-how-to-retrieve-voltage-on-donkey-car)
-- [6. Conclusion](#6-conclusion)
-- [7. Bibliography](#7-bibliography)
+- [**3. Energy consumption**](#3-energy-consumption)
+  - [**3.1 How to retrieve voltage on Donkey car?**](#31-how-to-retrieve-voltage-on-donkey-car)
+- [4. Conclusion](#4-conclusion)
+- [5. Bibliography](#5-bibliography)
 
 # **1. Motivation**
 We to train a model that can compete in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) at the University of Tartu.
@@ -53,34 +53,38 @@ A big part of the custom course will also be custom obstacles. The current simul
 The ADL Minincar challenge, however, poses a few more challenges, such as stopping at a pedestrian crossing, waiting for a bit and then continuing. Luckily things like these are rather easy
 to detect in Unity, and we can simply implement a pedestrian crossing component, and a service that watches whether the car stops before pedestrian crossings, and then send it to our model along with the cross track error and last collision information.
 
-# **4. Energy consumption**
-Training AI models is an extremly energy intensive task for example training ... is equivalent to ...
-Besides that indiviual vehicles are even more of a threat to the climate crisis. As a consequence - let's give the project a little green twist and try to think about some approaches to minimize energy consumption both for model training and while driving. The latter might also include adjustments to the hard and software on our Donkey Car. Maybe even the model we use can also account for later battery usage of the car and can therefore have a positive impact on it.
+# **3. Energy consumption**
+Training AI models alone is an extremly [energy intensive task](https://numenta.com/blog/2022/05/24/ai-is-harming-our-planet).
+Besides that indiviual vehicles are even more of a [threat to the climate crisis](https://ourworldindata.org/co2-emissions-from-transport). As a consequence - let's give the project a little green twist and try to think about some approaches to minimize energy consumption both for model training and while driving. The latter might also include adjustments to the hard and software on our Donkey Car. Maybe even the model we use can also account for later battery usage of the car and can therefore have a positive impact on it.
+
 The key to comparing and later on reducing energy consumption will be to monitor it. 
+
 Firstly we would have to monitor it during training which can be significant as stated before but it might also be neglectable comparing it to the overall driving and life time of a potential fleet of cars that would make use of it. Nevertheless we should pay attention to it as soon as we start training our models in a later stage of the project.
 
-Secondly and more importantly there is the engery usage of the car while driving. In the case of our Donkey Car power is supplied by a about 8 V, 1700 mAh Li-Po battery. In order to get its energy level and change we need to know the current capacity (C) and voltage (U) over time as we can get the energy (E) by E = C * U . So far the Donkey car does not provide any means to poll the battery capacity but retrieving the voltage is or better should be possible which we will dive into in the next section.
+Secondly and more importantly there is the engery usage of the car while driving. In the case of our Donkey Car power is supplied by a about 8 V, 1700 mAh Li-Po battery. In order to get its energy level and change we need to know the current capacity (C) and voltage (U) over time as we can get the energy (E) by E = C * U . So far the Donkey car does not provide any means to poll the current capacity but retrieving the voltage is or better should be possible which we will dive into in the next section.
 
-## 4.1 How to retrieve voltage on Donkey car?
-So how do we get it? First - where do we have to put our attention among all those circuits, cables, sensors and motors of the Donkey Car? We can see that the battery is plugged into the blue circuit board at the top of the car - this is the Robohat MM1 (https://robohatmm1-docs.readthedocs.io/en/latest/) which is a microcontroller made for robotics. In this case its main use is to send the steering signals from the Raspberry Pi to the motor. It is said to have a INA219 current sensor so voltage should be available for us. It also provides a bunch of pins (https://robohatmm1-docs.readthedocs.io/en/latest/hardware/pinout/) over which we can retrieve information from it such as the SERVO pins for the steering commands. The pin that we are interested in is the PA02-pin or BATTERY-pin (https://robohatmm1-docs.readthedocs.io/en/latest/guide/Circuitpython%20API/Circuit_Python_API/) - it seems to give us information about the voltage of our battery. But how to talk to it?
+## **3.1 How to retrieve voltage on Donkey car?**
+So how do we get it? First - where do we have to put our attention among all those circuits, cables, sensors and motors of the Donkey Car? We can see that the battery is plugged into the blue circuit board at the top of the car - this is the [Robohat MM1](https://robohatmm1-docs.readthedocs.io/en/latest/) which is a microcontroller made for robotics. In this case its main use is to send the steering commands from the Raspberry Pi to the motor. It is said to have a [INA219 current sensor](https://robohatmm1-docs.readthedocs.io/en/latest/) so voltage should be available for us. It also provides a bunch of [pins](https://robohatmm1-docs.readthedocs.io/en/latest/hardware/pinout/) over which we can retrieve information from it such as the SERVO pins for the steering commands. The pins that we are interested in is the [PA02-pin or BATTERY-pin](https://robohatmm1-docs.readthedocs.io/en/latest/guide/Circuitpython%20API/Circuit_Python_API/)  - it seems to give us information about the voltage of our battery. But how to talk to it?
 
-As you might remeber from the car setup there is this Circuit Python code running on the robohat. We can connect to the robohat to access the code. We are mainly intersted in the code.py file as this is the main file that is executed once power is provided for the robohat. It includes a setup and then run in an infinite loop to poll steering information from the Raspberry Pi which is also done by some of the pins that we introduced before. In the same manner we can retrieve values from the analog BATTERY-pin in a quite easy way (https://learn.adafruit.com/circuitpython-essentials/circuitpython-analog-in).
+As you might remember from the [car setup](https://docs.donkeycar.com/guide/create_application/) there is this Circuit Python code running on the robohat. We can connect to the robohat via USB to access the code. We are mainly intersted in the *code.py* file as this is the main file that is executed once power is provided for the robohat. It includes a setup and then runs in an infinite loop to poll steering information from the Raspberry Pi which is also done by some of those pins. In the same manner we can [retrieve values from the¸ analog BATTERY-pin](https://learn.adafruit.com/circuitpython-essentials/circuitpython-analog-in) in a quite easy way .
 
+```
 from analogio import AnalogIn
 analog_in = AnalogIn(board.BATTERY)
 print(analog_in.value)
+```
 
-The only problem now is that the values are from a range of 0 to 2^16 - clearly not a value range we expected for voltage. We have to interprete it as proportion of the maximum voltage. But still the values are around 4.7 V which is a little off from the around 7.5 V that we get from the multimeter - so still a issue to work on.
+The only problem now is that the values are from a range of 0 to 2^16 - clearly not a value range we expected for voltage. We have to [interprete it](https://learn.adafruit.com/circuitpython-essentials/circuitpython-analog-in) as proportion of the maximum voltage. But still the values are around 4.7 V which is a little off from the around 7.5 V that we get from the multimeter - so still a issue to work on.
 
-Finally what are our options to store those values and monitor while the car is driving in laps. Basically we see two options both with their very own challenges. We could send the voltage values to the Raspberry over pins using the UART protocol and store them right next to the recorded image data which would be the most favourable option. But we would have to think about how to poll the pin values from the Raspberry which is not done currently. In comparison the naive option that is currently partially working (just one voltage value can be written) is to store the results in a file on the robohat. One has to pay attention to that the robohat file-system is read-only thus we have to remount it so that it can write to itself (https://learn.adafruit.com/circuitpython-essentials/circuitpython-storage)(just create a boot.py file with "storage.remount('/',False)"). Downside: you loose write access to the hat from your computer, so it is getting less convenient to make further changes to the code. As you see, there is still some work to do.
+Finally, what are our options to store those values and monitor while the car is driving in laps? Basically we see two options both with their very own challenges. We could send the voltage values to the Raspberry over pins using the UART protocol and store them right next to the recorded image data which would be the most favourable option. But we would have to think about how to poll the pin values from the Raspberry which is not done currently. In comparison the naive option that is currently partially working (just one voltage value can be written) is to store the results in a file on the robohat. One has to pay attention to that the robohat file-system is read-only thus we have to [remount](https://learn.adafruit.com/circuitpython-essentials/circuitpython-storage) it so that it can write to itself (just create a *boot.py* file with *storage.remount('/',False)*). Downside: you loose write access to the hat from your computer, so it is getting less convenient to make further changes to the code. As you see, there is still some work to do.
 
-Our roadmap would be: store the values conveniently - get the right values - also retrieve battery capacity.
+Our roadmap would be: store the values conveniently - get the right values/ the values right - also retrieve current capacity.
 
-# 6. Conclusion
+# 4. Conclusion
 While we have found a way to do reinforcement learning in a simulator, as we set out to do, we want to optimize it for the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage). This means we will have to do implement a lot of customizations in the Unity simulator, which is still a work in progress.
 We have also been able to somewhat track energy consumption, which would like to play around with a lot to figure out how to minimize consumption.
 
-# 7. Bibliography
+# 5. Bibliography
 [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage)\
 [Self driving car sandbox](https://github.com/tawnkramer/sdsandbox)\
 [gym-donkeycar](https://github.com/tawnkramer/gym-donkeycar)
