@@ -24,8 +24,7 @@ authors: Lukas Schilling, Till Wenke
   - [**3.3 Image processing**](#33-image-processing)
 - [**4. Energy consumption**](#4-energy-consumption)
   - [**4.1 Does training in a simulation save energy?**](#41-does-training-in-a-simulation-save-energy)
-
-<hr>
+- [5. Bibliography](#5-bibliography)
 
 # **1. Motivation**
 # **2. Donkey Simulation**
@@ -35,11 +34,12 @@ authors: Lukas Schilling, Till Wenke
 #### **2.2.1.1 reference blog post**
 ### **2.2.2 Expanded and updated solution**
 #### **2.2.2.1 Motivation for expanding the solution**
-
+Fixing issues mostly and updating to latest version of libraries and tools.
 #### **2.2.2.2 Problems with expanding the solution so far**
 Websocket issues
 #### **2.2.2.3 Future plans for simulation**
 #### **2.2.2.3.1 Adding obstacles**
+Easily calculate score based on car's performance. We could easily customize this to penalize hitting pedestrians or not waiting at crossings. Stop at a stop sign
 
 # **3. Simulation to real life**
 ## **3.1 Building the competition course in our simulation**
@@ -48,3 +48,5 @@ Websocket issues
 
 # **4. Energy consumption**
 ## **4.1 Does training in a simulation save energy?**
+
+# 5. Bibliography
