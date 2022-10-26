@@ -37,7 +37,7 @@ Luckily we're not the first that wants to use reinforcement learning in the self
 
 ### **2.2.1 OpenAI Gym Environment for Donkey Car**
 The OpenAI Gym repository has a reinforcement learning implementation based on [this blog post](https://flyyufelix.github.io/2018/09/11/donkey-rl-simulation.html) about implementing Double Deep Q Learning in the donkey simulator. Their implementation is a little old, and has a few issues with the latest versions of its libraries, which we have fixed in [our fork of the project](https://github.com/Lukires/gym-donkeycar). Starting the training is quite simple, once you have set up the project and the simulator, simply use ``python gym-donkeycar/examples/reinforcement_learning/ddqn.py --sim <path to simulator>``. Which starts the training as seen in the image below.
-![DDQN training](../assets/donkey_ddqn_test.png)
+![DDQN training](./assets/donkey_ddqn_test.png)
 
 ### **2.2.2 Expanding upon the solution**
 The DDQN implementation uses a constant throttle, meaning we are only training the steering. Some of the challenges in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) require the ability to slow down and stop completely. Thus, it is important that our model is able to control its throttle. It also means that we need to create a course,
