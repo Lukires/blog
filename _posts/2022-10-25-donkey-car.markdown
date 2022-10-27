@@ -19,6 +19,7 @@ author: Lukas Schilling and Till Wenke
   - [**3.1 How to retrieve voltage on Donkey car?**](#31-how-to-retrieve-voltage-on-donkey-car)
 - [4. Conclusion](#4-conclusion)
 - [5. Bibliography](#5-bibliography)
+- [To do:](#to-do)
 
 # **1. Motivation**
 We want to train a model that can compete in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) at the University of Tartu.
@@ -88,3 +89,9 @@ We have also been able to somewhat track energy consumption, which would like to
 [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage)\
 [Self driving car sandbox](https://github.com/tawnkramer/sdsandbox)\
 [gym-donkeycar](https://github.com/tawnkramer/gym-donkeycar)
+
+# To do:
+Adaptive throttling\
+Custom course\
+Procedural generation of courses perhaps\
+Using model on donkey car\
