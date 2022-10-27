@@ -83,7 +83,7 @@ Our roadmap would be: store the values conveniently - get the right values/ the 
 
 # 4. Conclusion
 While we have found a way to do reinforcement learning in a simulator, as we set out to do, we want to optimize it for the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage). This means we will have to do implement a lot of customizations in the Unity simulator, which is still a work in progress.
-We have also been able to somewhat track energy consumption, which would like to play around with a lot to figure out how to minimize consumption.
+We have also been able to somewhat track energy consumption, which we would like to play around with to figure out how to minimize consumption.
 
 # 5. Bibliography
 [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage)\
