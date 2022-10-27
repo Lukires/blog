@@ -17,9 +17,9 @@ author: Lukas Schilling and Till Wenke
       - [**2.2.2.4 Custom course and custom obstacles**](#2224-custom-course-and-custom-obstacles)
 - [**3. Energy consumption**](#3-energy-consumption)
   - [**3.1 How to retrieve voltage on Donkey car?**](#31-how-to-retrieve-voltage-on-donkey-car)
-- [4. Conclusion](#4-conclusion)
-- [5. Bibliography](#5-bibliography)
-- [To do:](#to-do)
+- [**4. Conclusion**](#4-conclusion)
+- [**5. Bibliography**](#5-bibliography)
+- [**To do**](#to-do)
 
 # **1. Motivation**
 We want to train a model that can compete in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) at the University of Tartu.
@@ -81,16 +81,16 @@ Finally, what are our options to store those values and monitor while the car is
 
 Our roadmap would be: store the values conveniently - get the right values/ the values right - also retrieve current capacity.
 
-# 4. Conclusion
+# **4. Conclusion**
 While we have found a way to do reinforcement learning in a simulator, as we set out to do, we want to optimize it for the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage). This means we will have to do implement a lot of customizations in the Unity simulator, which is still a work in progress.
 We have also been able to somewhat track energy consumption, which we would like to play around with to figure out how to minimize consumption.
 
-# 5. Bibliography
+# **5. Bibliography**
 [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage)\
 [Self driving car sandbox](https://github.com/tawnkramer/sdsandbox)\
 [gym-donkeycar](https://github.com/tawnkramer/gym-donkeycar)
 
-# To do:
+# **To do**
 Adaptive throttling\
 Custom course\
 Procedural generation of courses perhaps\
