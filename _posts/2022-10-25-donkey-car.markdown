@@ -94,4 +94,4 @@ We have also been able to somewhat track energy consumption, which we would like
 Adaptive throttling\
 Custom course\
 Procedural generation of courses perhaps\
-Using model on donkey car\
+Using a model trained in a simulation on a real life donkey car\
