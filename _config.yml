@@ -21,7 +21,7 @@ author: Lukas Schilling
 title: Lukas Schilling's blog
 #email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  A blog by Lukas Schilling, will have random probably Computer Science related things here
+  enjoy random blogs mostly about computer science
 baseurl: "" # the subpath of your site, e.g. /blog
 email: "lukiwokimc@gmail.com"
 url: "https://secret.leeks.dk" # the base hostname & protocol for your site, e.g. http://example.com
