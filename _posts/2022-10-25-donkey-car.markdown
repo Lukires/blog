@@ -31,7 +31,7 @@ reproduce our results.
 # **2. Donkey Simulation**
 To start, we need to find simulator, where we can train our car. For this we use [Self driving car sandbox](https://github.com/tawnkramer/sdsandbox). 
 ## **2.1 Self driving car sandbox**
-[The self driving car sandbox](https://github.com/tawnkramer/sdsandbox) is great, because it is made for the donkey car. It is made in Unity, which means we can easily make additions and changes to the simulation, which we will get into a bit more further down. We have made a fork of the project, which is where all our changes to the simulator will be: [Self driving car sandbox fork](https://github.com/Lukires/gym-donkeycar)
+[The self driving car sandbox](https://github.com/tawnkramer/sdsandbox) is great, because it is made for the donkey car. It is made in Unity, which means we can easily make additions and changes to the simulation, which we will get into a bit more further down. We have made a fork of the project, which is where all our changes to the simulator will be: [Self driving car sandbox fork](https://github.com/Lukires/sdsandbox)
 
 ## **2.2 Reinforcement learning integration**
 Luckily we're not the first that wants to use reinforcement learning in the self driving car sandbox. Using the OpenAI [gym-donkeycar](https://github.com/tawnkramer/gym-donkeycar) environment for donkey car makes this a trivial task.
