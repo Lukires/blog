@@ -13,18 +13,22 @@ author: Lukas Schilling and Till Wenke
   - [**2.2 Reinforcement learning integration**](#22-reinforcement-learning-integration)
     - [**2.2.1 OpenAI Gym Environment for Donkey Car**](#221-openai-gym-environment-for-donkey-car)
     - [**2.2.2 Expanding upon the solution**](#222-expanding-upon-the-solution)
+      - [**2.2.2.1 Custom course and custom obstacles**](#2221-custom-course-and-custom-obstacles)
+        - [**2.2.2.1.1 Finding textures**](#22211-finding-textures)
+        - [**2.2.2.1.2 Implementing it in Unity**](#22212-implementing-it-in-unity)
+      - [**Changing gym-donkeycar for better learning**](#changing-gym-donkeycar-for-better-learning)
       - [**2.2.2.3 Changing the throttle dynamically**](#2223-changing-the-throttle-dynamically)
-      - [**2.2.2.4 Custom course and custom obstacles**](#2224-custom-course-and-custom-obstacles)
-- [**3. Energy consumption**](#3-energy-consumption)
-  - [**3.1 How to retrieve voltage on Donkey car?**](#31-how-to-retrieve-voltage-on-donkey-car)
-- [**4. Conclusion**](#4-conclusion)
-- [**5. Bibliography**](#5-bibliography)
-- [**To do**](#to-do)
+- [**3. From simulation to real life**](#3-from-simulation-to-real-life)
+- [**4. Energy consumption**](#4-energy-consumption)
+  - [**4.1 How to retrieve voltage on Donkey car?**](#41-how-to-retrieve-voltage-on-donkey-car)
+- [**5. Conclusion**](#5-conclusion)
+- [**6. Bibliography**](#6-bibliography)
 
 # **1. Motivation**
 We want to train a model that can compete in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) at the University of Tartu.
 We thought it would be interesting to train a model in a simulation, using reinforcement learning, which is what this post will be focusing on.
-We will walk through our discoveries and progress, as well as our future plan, in a way that should make it possible for readers to follow along and
+The reason we thought training a reinforcement learning model would be interesting, is that we thought this would be a good way of reducing human driving biases. If we trained a model based on our own driving, then it would start driving like us. The question then becomes, are we even good at driving? Would a model that started from scratch learn some other biases than our human driving biases? We had a lot of questions like these in mind, so we wanted to explore the territory for ourselves.
+We will walk through our discoveries and process, as well as what we would like to expand upon, in a way that should make it possible for readers to follow along and
 reproduce our results.
 
 
@@ -41,20 +45,63 @@ The OpenAI Gym repository has a reinforcement learning implementation based on [
 ![DDQN training](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/donkey_ddqn_test.png)
 
 ### **2.2.2 Expanding upon the solution**
-The DDQN implementation uses a constant throttle, meaning we are only training the steering. Some of the challenges in the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) require the ability to slow down and stop completely. Thus, it is important that our model is able to control its throttle. It also means that we need to create a course virtual,
-that can recreate the problems that require slowing down and stopping completely, which we could then use for training.
+We now how a working simulated environment that lets us train a reinforcement learning model for our donkeycar. Now the task becomes to make adjustments, such that is suits our use case ([ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage)) as well as possible.
+
+#### **2.2.2.1 Custom course and custom obstacles**
+A big motivation for using the [self driving car sandbox](https://github.com/Lukires/sdsandbox), is that is is made in Unity, which means we can easily make our own adjustments and changes. Essentially we wanted to build the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) course in Unity, such that we can train our model in a simulated environment that looks a lot like the environment the real car will be driving in.
+
+##### **2.2.2.1.1 Finding textures**
+The most important part of the course are the walls, as this is what is defining the path the car will follow. It would be most ideal for us, if the textures in the simulator looks like their real life counterparts. For this we found a texture database called [Polyhaven](https://polyhaven.com/textures), which had just the kind of textures we needed to recreate the course.
+
+##### **2.2.2.1.2 Implementing it in Unity**
+Implementing the course in Unity was fairly trivial, as Unity is mostly drag and drop. We placed a bunch of cubes, made them colideable and gave them a wood-like texture from [Polyhaven](https://polyhaven.com/textures). Then we moved the Car spawn point to the course start point, and defined a path throughout the course that our model will be able to use to evaluate how well it is driving. All resulting in this:
+![Simulator in unity](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/full_delta.png)
+![DQQN running on our own course](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/ddqn_full_delta.png)
+
+#### **Changing gym-donkeycar for better learning**
+When training the DDQN model on our course we quickly ran into some issues, it didn't seem to improve a whole lot. After digging through the gym_donkeycar code, we stumbled upon this piece of code:
+```python
+def determine_episode_over(self):
+    # we have a few initial frames on start that are sometimes very large CTE when it's behind
+    # the path just slightly. We ignore those.
+    if math.fabs(self.cte) > 2 * self.max_cte:
+        pass
+    elif math.fabs(self.cte) > self.max_cte:
+        logger.debug(f"game over: cte {self.cte}")
+        self.over = True
+    elif self.hit != "none":
+        logger.debug(f"game over: hit {self.hit}")
+        self.over = True
+    elif self.missed_checkpoint:
+        logger.debug("missed checkpoint")
+        self.over = True
+    elif self.dq:
+        logger.debug("disqualified")
+        self.over = True
+    # Disable reset
+    if os.environ.get("RACE") == "True":
+        self.over = False
+```
+This code determines whether the car should be reset or not. It is used a lot in reinforcement learning, as when the car messes up, we want to put it back into a state where it can try again. However, for us, it seemed like the car was resetting a lot more than we'd like it to, which made it very hard for the car to improve, as it didn't get a lot of room to experiment and thereby get rewarded even further. We thought to ourselves, that the only disqualifying behavior the car can really do, is to crash into something, so we decided to update this function to something much more simple:
+```python
+def determine_episode_over(self):
+    # we have a few initial frames on start that are sometimes very large CTE when it's behind
+    # the path just slightly. We ignore those.
+    if math.fabs(self.cte) > 2 * self.max_cte:
+        pass
+    elif self.hit != "none":
+        logger.debug(f"game over: hit {self.hit}")
+        self.over = True
+```
+While it may not look like much, this actually massively improved the rate in which our model learned, making the model able to traverse much further into the course much faster.
 
 #### **2.2.2.3 Changing the throttle dynamically**
-Adding adaptive throttling to our model turns out to be very easy, it is essentially just expanding the output space by one variable and sending this variable to our simulation as the car's throttle. However, while implementing it is easy, training the model becomes a lot harder. We also have to consider how throttle translates to speed, because the throttle's affect on speed can vary,
-espcially for a real donkey car. We are still working on an optimal solution for this.
+Adding adaptive throttling to our model turns out to be very easy, it is essentially just expanding the output space by one variable and sending this variable to our simulation as the car's throttle. However, while implementing it is easy, training the model becomes a lot harder. Thus for now, we have decided to let the throttle remain static, in the case of our simulation it is 0.075.
 
-#### **2.2.2.4 Custom course and custom obstacles**
-We are working on creating a course which will look like the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) competition course. Luckily, since the simulator is made in Unity, this becomes quite trivial, and we will push our finished course to [our fork of the simulator](https://github.com/Lukires/gym-donkeycar).
-A big part of the custom course will also be custom obstacles. The current simulation implementation calculates a cross track error, as well as when was the last collision, and sends it to our model. The model then uses it to evaluate its decisions. This is enough for following a road and avoiding obstacles, such as walls or pedrestians.
-The ADL Minincar challenge, however, poses a few more challenges, such as stopping at a pedestrian crossing, waiting for a bit and then continuing. Luckily things like these are rather easy
-to detect in Unity, and we can simply implement a pedestrian crossing component, and a service that watches whether the car stops before pedestrian crossings, and then send it to our model along with the cross track error and last collision information. The way the model works is that it counts how much it has driven before these parameters reach a certain threshold, and uses that to evaluate its performance.  
+# **3. From simulation to real life**
 
-# **3. Energy consumption**
+
+# **4. Energy consumption**
 Training AI models alone is an extremly [energy intensive task](https://numenta.com/blog/2022/05/24/ai-is-harming-our-planet).
 Besides that indiviual vehicles are even more of a [threat to the climate crisis](https://ourworldindata.org/co2-emissions-from-transport). As a consequence - let's give the project a little green twist and try to think about some approaches to minimize energy consumption both for model training and while driving. The latter might also include adjustments to the hard and software on our Donkey Car. Maybe even the model we use can also account for later battery usage of the car and can therefore have a positive impact on it.
 
@@ -64,7 +111,7 @@ Firstly we would have to monitor it during training which can be significant as 
 
 Secondly and more importantly there is the engery usage of the car while driving. In the case of our Donkey Car power is supplied by a about 8 V, 1700 mAh Li-Po battery. In order to get its energy level and change we need to know the current capacity (C) and voltage (U) over time as we can get the energy (E) by E = C * U . So far the Donkey car does not provide any means to poll the current capacity but retrieving the voltage is or better should be possible which we will dive into in the next section.
 
-## **3.1 How to retrieve voltage on Donkey car?**
+## **4.1 How to retrieve voltage on Donkey car?**
 So how do we get it? First - where do we have to put our attention among all those circuits, cables, sensors and motors of the Donkey Car? We can see that the battery is plugged into the blue circuit board at the top of the car - this is the [Robohat MM1](https://robohatmm1-docs.readthedocs.io/en/latest/) which is a microcontroller made for robotics. In this case its main use is to send the steering commands from the Raspberry Pi to the motor. It is said to have a [INA219 current sensor](https://robohatmm1-docs.readthedocs.io/en/latest/) so voltage should be available for us. It also provides a bunch of [pins](https://robohatmm1-docs.readthedocs.io/en/latest/hardware/pinout/) over which we can retrieve information from it such as the SERVO pins for the steering commands. The pins that we are interested in is the [PA02-pin or BATTERY-pin](https://robohatmm1-docs.readthedocs.io/en/latest/guide/Circuitpython%20API/Circuit_Python_API/)  - it seems to give us information about the voltage of our battery. But how to talk to it?
 
 As you might remember from the [car setup](https://docs.donkeycar.com/guide/create_application/) there is this Circuit Python code running on the robohat. We can connect to the robohat via USB to access the code. We are mainly intersted in the *code.py* file as this is the main file that is executed once power is provided for the robohat. It includes a setup and then runs in an infinite loop to poll steering information from the Raspberry Pi which is also done by some of those pins. In the same manner we can [retrieve values from the¸ analog BATTERY-pin](https://learn.adafruit.com/circuitpython-essentials/circuitpython-analog-in) in a quite easy way .
@@ -81,17 +128,11 @@ Finally, what are our options to store those values and monitor while the car is
 
 Our roadmap would be: store the values conveniently - get the right values/ the values right - also retrieve current capacity.
 
-# **4. Conclusion**
+# **5. Conclusion**
 While we have found a way to do reinforcement learning in a simulator, as we set out to do, we want to optimize it for the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage). This means we will have to do implement a lot of customizations in the Unity simulator, which is still a work in progress.
 We have also been able to somewhat track energy consumption, which we would like to play around with to figure out how to minimize consumption.
 
-# **5. Bibliography**
+# **6. Bibliography**
 [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage)\
 [Self driving car sandbox](https://github.com/tawnkramer/sdsandbox)\
 [gym-donkeycar](https://github.com/tawnkramer/gym-donkeycar)
-
-# **To do**
-Adaptive throttling\
-Custom course\
-Procedural generation of courses perhaps\
-Using a model trained in a simulation on a real life donkey car\
