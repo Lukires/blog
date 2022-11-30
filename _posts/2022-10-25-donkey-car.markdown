@@ -19,6 +19,7 @@ author: Lukas Schilling and Till Wenke
       - [**Changing gym-donkeycar for better learning**](#changing-gym-donkeycar-for-better-learning)
       - [**2.2.2.3 Changing the throttle dynamically**](#2223-changing-the-throttle-dynamically)
 - [**3. From simulation to real life**](#3-from-simulation-to-real-life)
+  - [**3.1. Porting a model to the donkeycar**](#31-porting-a-model-to-the-donkeycar)
 - [**4. Energy consumption**](#4-energy-consumption)
   - [**4.1 How to retrieve voltage on Donkey car?**](#41-how-to-retrieve-voltage-on-donkey-car)
 - [**5. Conclusion**](#5-conclusion)
@@ -29,7 +30,7 @@ We want to train a model that can compete in the [ADL Minicar Challenge 2023](ht
 We thought it would be interesting to train a model in a simulation, using reinforcement learning, which is what this post will be focusing on.
 The reason we thought training a reinforcement learning model would be interesting, is that we thought this would be a good way of reducing human driving biases. If we trained a model based on our own driving, then it would start driving like us. The question then becomes, are we even good at driving? Would a model that started from scratch learn some other biases than our human driving biases? We had a lot of questions like these in mind, so we wanted to explore the territory for ourselves.
 We will walk through our discoveries and process, as well as what we would like to expand upon, in a way that should make it possible for readers to follow along and
-reproduce our results.
+reproduce our results. We also have a few things we were wondering about energy consumption, and will briefly address that too in this blog post.
 
 
 # **2. Donkey Simulation**
@@ -54,9 +55,13 @@ A big motivation for using the [self driving car sandbox](https://github.com/Luk
 The most important part of the course are the walls, as this is what is defining the path the car will follow. It would be most ideal for us, if the textures in the simulator looks like their real life counterparts. For this we found a texture database called [Polyhaven](https://polyhaven.com/textures), which had just the kind of textures we needed to recreate the course.
 
 ##### **2.2.2.1.2 Implementing it in Unity**
-Implementing the course in Unity was fairly trivial, as Unity is mostly drag and drop. We placed a bunch of cubes, made them colideable and gave them a wood-like texture from [Polyhaven](https://polyhaven.com/textures). Then we moved the Car spawn point to the course start point, and defined a path throughout the course that our model will be able to use to evaluate how well it is driving. All resulting in this:
+To make it in Unity we first had to take measurements of the course and the real life donkey car, such that we would have the correct proportions in our simulation.
+From there, implementing the course in Unity was fairly trivial, as Unity is mostly drag and drop. We placed a bunch of cubes, made them colideable and gave them a wood-like texture from [Polyhaven](https://polyhaven.com/textures). Then we moved the Car spawn point to the course start point, and defined a path throughout the course that our model will be able to use to evaluate how well it is driving. All resulting in this:
 ![Simulator in unity](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/full_delta.png)
-![DQQN running on our own course](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/ddqn_full_delta.png)
+![DDQN running on our own course](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/ddqn_full_delta.png)
+
+A nice thing about the DDQN implementation is that it already crops and tranforms images, making it faster to process and removing a lot of noise from the images. Here is an image of that on our own course:
+![A very low res image with distorted colors of our track](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/car_pov.jpg)
 
 #### **Changing gym-donkeycar for better learning**
 When training the DDQN model on our course we quickly ran into some issues, it didn't seem to improve a whole lot. After digging through the gym_donkeycar code, we stumbled upon this piece of code:
@@ -99,7 +104,29 @@ While it may not look like much, this actually massively improved the rate in wh
 Adding adaptive throttling to our model turns out to be very easy, it is essentially just expanding the output space by one variable and sending this variable to our simulation as the car's throttle. However, while implementing it is easy, training the model becomes a lot harder. Thus for now, we have decided to let the throttle remain static, in the case of our simulation it is 0.075.
 
 # **3. From simulation to real life**
+Going from simulation to real life has a lot of challenges.
+## **3.1. Porting a model to the donkeycar**
+It turns out, porting a model to the donkeycar is rather simple. Here is an example of us, porting another simple reinforcement learning model to the donkey-car:
+```python
+from stable_baselines3 import PPO
+from donkeycar.parts.keras import KerasPilot
 
+class RL_PPO(KerasPilot):
+    def __init__(self):
+        print("Setting up our model")
+        super().__init__()
+    
+    def compile(self):
+        print("Compiling our model")
+        self.model = PPO.load("./models/ppo_donkey")
+
+    def inference(self, img_arr, other_arr):
+        action, _states = self.model.predict(img_arr, deterministic=True)
+        steering = action[0]
+        throttle = action[1]
+        return steering, throttle
+```
+The only two required fields to implement are compile and inference. Inference being the method that is called to make decisions. The size of the images passed to inference matches the size of the images in our simulator, and the output space expected from inference matches the output space of our models from our simulator. It is rather plug and play, and very similar.
 
 # **4. Energy consumption**
 Training AI models alone is an extremly [energy intensive task](https://numenta.com/blog/2022/05/24/ai-is-harming-our-planet).
@@ -129,8 +156,7 @@ Finally, what are our options to store those values and monitor while the car is
 Our roadmap would be: store the values conveniently - get the right values/ the values right - also retrieve current capacity.
 
 # **5. Conclusion**
-While we have found a way to do reinforcement learning in a simulator, as we set out to do, we want to optimize it for the [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage). This means we will have to do implement a lot of customizations in the Unity simulator, which is still a work in progress.
-We have also been able to somewhat track energy consumption, which we would like to play around with to figure out how to minimize consumption.
+We have managed to train a self-driving model in a simulator, using reinforcement learning, which is what we set out to do. We then found out how to port models from the gym-donkeycar environment to the donkeycar environment. A future step could be to test how well a model trained on the simulated [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) course would perform on the real one. We have also been able to somewhat track energy consumption, which could be interesting to use when training models, could be interesting to train models that try to minimize energy consumption over distance traveled.
 
 # **6. Bibliography**
 [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage)\
