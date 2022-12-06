@@ -60,10 +60,10 @@ From there, implementing the course in Unity was fairly trivial, as Unity is mos
 ![Simulator in unity](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/full_delta.png)
 ![DDQN running on our own course](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/ddqn_full_delta.png)
 
-The DDQN implementation transforms the image into a smaller black and white image, such that it is much easier to process. This gives us images like this one:
-![A very low res image black and white image of our track](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/car_pov_uncropped.jpg).
+The DDQN implementation transforms the image into a smaller black and white image, such that it is much easier to process. This gives us images like this one:\
+![A very low res image black and white image of our track](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/car_pov_uncropped.jpg).\
 While this is great, it still leaves a lot of noise in the image, in terms of showing things that are not relevant to the track, in this case the background.
-We can improve upon this by cropping the top part of images off, such that only the track is shown to our model.
+We can improve upon this by cropping the top part of images off, such that only the track is shown to our model.\
 ![A very low res image black and white image of our track and the top is cropped off](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/car_pov.jpg)
 
 #### **Changing gym-donkeycar for better learning**
