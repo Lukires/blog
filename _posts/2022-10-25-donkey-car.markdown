@@ -84,8 +84,8 @@ def calc_reward(self, done: bool) -> float:
     # going fast close to the center of lane yields best reward
     return ((1.0 - (self.cte / self.max_cte) ** 2) * (self.speed / max_speed))
 ```
-Cross track error makes a lot of sense, if your course might not have some hard defined boundaries, but in our case it does. The hard defined boundaries being the walls in the course. We would rather have the reward be calculated with this in mind. Therefore we have changed the reward function to use LIDAR, which can essentially be seen as shooting out a lot of lasers in a bunch of different directions and calculating the distance to the first thing the lasers hit. As seen in the image below:
-![It is our donkey car with a bunch of LIDAR lasers being shot from it.](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/car_lidar.jpg)
+Cross track error makes a lot of sense, if your course might not have some hard defined boundaries, but in our case it does. The hard defined boundaries being the walls in the course. We would rather have the reward be calculated with this in mind. Therefore we have changed the reward function to use LIDAR, which can essentially be seen as shooting out a lot of lasers in a bunch of different directions and calculating the distance to the first thing the lasers hit. As seen in the image below:\
+![It is our donkey car with a bunch of LIDAR lasers being shot from it.](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/car_lidar.png)\
 
 Instead of having a reward function that tries to minimize the cross track error, we will instead be using a reward function that tries to maximize the minimum distance to the walls on the course. We have implemented this as such:
 ```python
