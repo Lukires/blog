@@ -17,6 +17,8 @@ author: Lukas Schilling and Till Wenke
         - [**2.2.2.1.1 Finding textures**](#22211-finding-textures)
         - [**2.2.2.1.2 Implementing it in Unity**](#22212-implementing-it-in-unity)
       - [**Changing gym-donkeycar for better learning**](#changing-gym-donkeycar-for-better-learning)
+        - [**Changing reward function to use LIDAR**](#changing-reward-function-to-use-lidar)
+        - [**Changing reset conditions**](#changing-reset-conditions)
       - [**2.2.2.3 Changing the throttle dynamically**](#2223-changing-the-throttle-dynamically)
 - [**3. From simulation to real life**](#3-from-simulation-to-real-life)
   - [**3.1. Porting a model to the donkeycar**](#31-porting-a-model-to-the-donkeycar)
@@ -67,6 +69,39 @@ We can improve upon this by cropping the top part of images off, such that only 
 ![A very low res image black and white image of our track and the top is cropped off](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/car_pov.jpg)
 
 #### **Changing gym-donkeycar for better learning**
+##### **Changing reward function to use LIDAR**
+The default reward method uses cross-track-error. In the Unity environment, there is defined a path throughout all the courses. The cross-track-error tracks how far the car is from this path. This is how the code looks:
+```python
+def calc_reward(self, done: bool) -> float:
+    # Normalization factor, real max speed is around 30
+    # but only attained on a long straight line
+    max_speed = 10
+    if done:
+        return -1.0
+    # Collision
+    if self.hit != "none":
+        return -2.0
+    # going fast close to the center of lane yields best reward
+    return ((1.0 - (self.cte / self.max_cte) ** 2) * (self.speed / max_speed))
+```
+Cross track error makes a lot of sense, if your course might not have some hard defined boundaries, but in our case it does. The hard defined boundaries being the walls in the course. We would rather have the reward be calculated with this in mind. Therefore we have changed the reward function to use LIDAR, which can essentially be seen as shooting out a lot of lasers in a bunch of different directions and calculating the distance to the first thing the lasers hit. As seen in the image below:
+![It is our donkey car with a bunch of LIDAR lasers being shot from it.](https://raw.githubusercontent.com/Lukires/blog/main/_posts/assets/car_lidar.jpg)
+
+Instead of having a reward function that tries to minimize the cross track error, we will instead be using a reward function that tries to maximize the minimum distance to the walls on the course. We have implemented this as such:
+```python
+def calc_reward(self, done: bool) -> float:
+    if done:
+        return -1.0
+    # Collision
+    if self.hit != "none":
+        return -2.0
+    # If a laser doesn't hit anything before self.max_lidar, then it is -1. We remove these from our calculations.
+    lidar = self.lidar[self.lidar >= 0]
+    return np.power(np.min(lidar) / self.max_lidar, 2)
+```
+While this change will probably not have a big impact on our model, it is nice to use a reward function that better reflects our goals.
+
+##### **Changing reset conditions**
 When training the DDQN model on our course we quickly ran into some issues, it didn't seem to improve a whole lot. After digging through the gym_donkeycar code, we stumbled upon this piece of code:
 ```python
 def determine_episode_over(self):
@@ -159,7 +194,7 @@ Finally, what are our options to store those values and monitor while the car is
 Our roadmap would be: store the values conveniently - get the right values/ the values right - also retrieve current capacity.
 
 # **5. Conclusion**
-We have managed to train a self-driving model in a simulator, using reinforcement learning, which is what we set out to do. We then found out how to port models from the gym-donkeycar environment to the donkeycar environment. A future step could be to test how well a model trained on the simulated [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) course would perform on the real one. We have also been able to somewhat track energy consumption, which could be interesting to use when training models, could be interesting to train models that try to minimize energy consumption over distance traveled.
+We have managed to train a self-driving model in a simulator, using reinforcement learning, which is what we set out to do. We then found out how to port models from the gym-donkeycar environment to the donkeycar environment. A future step could be to test how well a model trained on the simulated [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage) course would perform on the real one. We have also been able to somewhat track energy consumption, which could be interesting to use when training models, like train models that try to minimize energy consumption over distance traveled. One of our goals was to reduce human bias, by not having the car learn from a human driver. However, we have instead just introduced human biases in a lot of other places, such as how we choose to reward to car.
 
 # **6. Bibliography**
 [ADL Minicar Challenge 2023](https://courses.cs.ut.ee/t/DeltaXSelfDriving/Main/HomePage)\
